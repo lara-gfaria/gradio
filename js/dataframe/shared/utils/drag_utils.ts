@@ -5,6 +5,7 @@ export type DragState = {
 	is_dragging: boolean;
 	drag_start: CellCoordinate | null;
 	mouse_down_pos: { x: number; y: number } | null;
+	new_width: number;
 };
 
 export type DragHandlers = {
@@ -18,6 +19,7 @@ export function create_drag_handlers(
 	set_is_dragging: (value: boolean) => void,
 	set_selected_cells: (cells: CellCoordinate[]) => void,
 	set_selected: (cell: CellCoordinate | false) => void,
+	set_columns_width: (col: number, width: string) => void,
 	handle_cell_click: (event: MouseEvent, row: number, col: number) => void,
 	show_row_numbers: boolean,
 	parent_element?: HTMLElement
@@ -32,10 +34,19 @@ export function create_drag_handlers(
 		event.preventDefault();
 		event.stopPropagation();
 
+		if (row == -1) {
+			const target = event.target as HTMLElement;
+			const parent = target.parentElement;
+
+			if (parent) {
+				state.new_width = parent.clientWidth;
+			}
+		}
+
 		state.mouse_down_pos = { x: event.clientX, y: event.clientY };
 		state.drag_start = [row, col];
 
-		if (!event.shiftKey && !event.metaKey && !event.ctrlKey) {
+		if (!event.shiftKey && !event.metaKey && !event.ctrlKey && row !== -1) {
 			set_selected_cells([[row, col]]);
 			set_selected([row, col]);
 			handle_cell_click(event, row, col);
@@ -57,9 +68,14 @@ export function create_drag_handlers(
 	};
 
 	const end_drag = (event: MouseEvent): void => {
-		if (!state.is_dragging && state.drag_start) {
+		if (!state.is_dragging && state.drag_start && state.drag_start[0] !== -1) {
 			handle_cell_click(event, state.drag_start[0], state.drag_start[1]);
-		} else if (state.is_dragging && parent_element) {
+		} else if (
+			state.is_dragging &&
+			parent_element &&
+			state.drag_start &&
+			state.drag_start[0] !== -1
+		) {
 			parent_element.focus();
 		}
 
@@ -67,6 +83,7 @@ export function create_drag_handlers(
 		set_is_dragging(false);
 		state.drag_start = null;
 		state.mouse_down_pos = null;
+		state.new_width = 0;
 	};
 
 	return {
@@ -75,16 +92,27 @@ export function create_drag_handlers(
 		handle_mouse_move(event: MouseEvent): void {
 			if (!state.drag_start || !state.mouse_down_pos) return;
 
-			const dx = Math.abs(event.clientX - state.mouse_down_pos.x);
-			const dy = Math.abs(event.clientY - state.mouse_down_pos.y);
+			const dx = event.clientX - state.mouse_down_pos.x;
+			const dy = event.clientY - state.mouse_down_pos.y;
 
-			if (!state.is_dragging && (dx > 3 || dy > 3)) {
+			if (!state.is_dragging && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
 				state.is_dragging = true;
 				set_is_dragging(true);
 			}
-
-			if (state.is_dragging) {
+			if (state.is_dragging && state.drag_start[0] !== -1) {
 				update_selection(event);
+			}
+
+			if (state.is_dragging && state.drag_start[0] === -1) {
+				state.new_width += dx;
+
+				if (state.new_width < 100) {
+					state.new_width = 100;
+				}
+
+				state.mouse_down_pos.x = event.clientX;
+
+				set_columns_width(state.drag_start[1], `${state.new_width}px`);
 			}
 		},
 

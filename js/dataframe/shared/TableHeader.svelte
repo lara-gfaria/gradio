@@ -15,6 +15,11 @@
 	export let headers: string[];
 	export let get_cell_width: (index: number) => string;
 	export let handle_header_click: (event: MouseEvent, col: number) => void;
+	export let handle_edge_click: (
+		event: MouseEvent,
+		row: number,
+		col: number
+	) => void;
 	export let toggle_header_menu: (event: MouseEvent, col: number) => void;
 	export let end_header_edit: (event: CustomEvent<KeyboardEvent>) => void;
 	export let sort_columns: { col: number; direction: SortDirection }[] = [];
@@ -136,6 +141,10 @@
 			<CellMenuButton on_click={(event) => toggle_header_menu(event, i)} />
 		{/if}
 	</div>
+	<button
+		class="col-resizer"
+		on:mousedown={(event) => handle_edge_click(event, -1, i)}
+	></button>
 </th>
 
 <style>
@@ -249,5 +258,20 @@
 		position: sticky;
 		z-index: 5;
 		border-right: none;
+	}
+
+	.col-resizer {
+		background: transparent;
+		position: absolute;
+		width: 6px;
+		height: 100%;
+		cursor: col-resize;
+		z-index: 10;
+		right: -3px;
+		top: 0;
+	}
+
+	.col-resizer:hover {
+		background: var(--color-accent);
 	}
 </style>

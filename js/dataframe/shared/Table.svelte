@@ -104,6 +104,8 @@
 	$: active_header_menu = $df_state.ui_state.active_header_menu;
 	$: copy_flash = $df_state.ui_state.copy_flash;
 
+	$: column_widths = $df_state.config.column_widths;
+
 	$: actual_pinned_columns =
 		pinned_columns && data?.[0]?.length
 			? Math.min(pinned_columns, data[0].length)
@@ -673,17 +675,20 @@
 	let is_dragging = false;
 	let drag_start: [number, number] | null = null;
 	let mouse_down_pos: { x: number; y: number } | null = null;
+	let new_width: number = 0;
 
 	const drag_state: DragState = {
 		is_dragging,
 		drag_start,
-		mouse_down_pos
+		mouse_down_pos,
+		new_width
 	};
 
 	$: {
 		is_dragging = drag_state.is_dragging;
 		drag_start = drag_state.drag_start;
 		mouse_down_pos = drag_state.mouse_down_pos;
+		new_width = drag_state.new_width;
 	}
 
 	let drag_handlers: DragHandlers;
@@ -694,6 +699,9 @@
 			(value) => (is_dragging = value),
 			(cells) => df_actions.set_selected_cells(cells),
 			(cell) => df_actions.set_selected(cell),
+			(col, width) => {
+				df_actions.set_columns_width(col, width), set_cell_widths();
+			},
 			(event, row, col) => df_actions.handle_cell_click(event, row, col),
 			show_row_numbers,
 			parent
@@ -781,6 +789,7 @@
 							{headers}
 							{get_cell_width}
 							{handle_header_click}
+							handle_edge_click={(e, r, c) => handle_mouse_down(e, r, c)}
 							{toggle_header_menu}
 							{end_header_edit}
 							sort_columns={$df_state.sort_state.sort_columns}
@@ -887,6 +896,7 @@
 								{headers}
 								{get_cell_width}
 								{handle_header_click}
+								handle_edge_click={(e, r, c) => handle_mouse_down(e, r, c)}
 								{toggle_header_menu}
 								{end_header_edit}
 								sort_columns={$df_state.sort_state.sort_columns}
