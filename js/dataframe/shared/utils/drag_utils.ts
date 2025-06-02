@@ -1,6 +1,7 @@
 import type { CellCoordinate } from "../types";
 import { get_range_selection } from "../selection_utils";
 
+
 export type DragState = {
 	is_dragging: boolean;
 	drag_start: CellCoordinate | null;
@@ -19,8 +20,7 @@ export type ColumnDragHandlers = {
 	handle_mouse_left: (event: MouseEvent, row: number, col: number) => void;
 	handle_mouse_right: (event: MouseEvent, row: number, col: number) => void;
 	handle_mouse_column_move: (event: MouseEvent) => void;
-	//Será que pomos um handle_mouse_stop? É que no outro tipo de drag o movimento parava com um mouse_up, mas no
-	//nosso drag aquilo pode arrastar à direita ou à esquerda e só parar mesmo
+	handle_mouse_stop: (event: MouseEvent) => void; //Meio na dúvida com este
 }
 
 
@@ -113,14 +113,14 @@ export function create_column_drag_handlers(
 	//Aqui acho que deviamos fazer set_selected_columns, set_selected e handle_column_line_click
 	//Maybe tiramos o show_row_numbers?
 
-	//set_selected_cells: (cells: CellCoordinate[]) => void,
-	//set_selected: (cell: CellCoordinate | false) => void,
-	//handle_cell_click: (event: MouseEvent, row: number, col: number) => void,
+	//set_selected_column: (column: number) => void,
+	//set_selected: (cell: CellCoordinate | false) => void, O que fazer com este?
+	handle_column_click: (event: MouseEvent, col: number) => void
 	//show_row_numbers: boolean,
 	//parent_element?: HTMLElement
 
 ): ColumnDragHandlers {
-	const start_column_drag = (event: MouseEvent, row: number, col: number): void => {
+	const start_column_drag = (event: MouseEvent, col: number): void => {
 		//TO DO
 		/*
 		if (
@@ -201,7 +201,7 @@ export function create_column_drag_handlers(
 			*/
 		},
 
-		//handle_mouse_up: end_drag Qual é que seria a nossa condição de terminação?
+		handle_mouse_stop: end_column_drag
 		//Será que deviamos por um handle_mouse_stop?
 	};
 }

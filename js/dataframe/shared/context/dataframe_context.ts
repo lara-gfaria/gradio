@@ -140,6 +140,7 @@ interface DataFrameActions {
 	) => void;
 	set_copy_flash: (value: boolean) => void;
 	handle_cell_click: (event: MouseEvent, row: number, col: number) => void;
+	handle_column_click: (event: MouseEvent, col: number) => void;
 	toggle_cell_menu: (event: MouseEvent, row: number, col: number) => void;
 	toggle_cell_button: (row: number, col: number) => void;
 	handle_select_column: (col: number) => void;
@@ -524,6 +525,49 @@ function create_actions(
 				col_value: context.get_column!(col),
 				row_value: context.get_row!(actual_row),
 				value: context.get_data_at!(actual_row, col)
+			});
+		},
+		handle_column_click: (event: MouseEvent, col: number) => {
+			event.preventDefault();
+			event.stopPropagation();
+
+			const s = get(state);
+			if (!context.data || col < 0) return;
+
+			const rowIndices = s.current_search_query
+				? context.data.reduce((acc: number[], row, idx) => {
+						const match = row.some((cell) =>
+							String(cell?.value)
+								.toLowerCase()
+								.includes(s.current_search_query?.toLowerCase() || "")
+						);
+						if (match) acc.push(idx);
+						return acc;
+					}, [])
+				: context.data.map((_, idx) => idx);
+
+			const selectedCells: CellCoordinate[] = rowIndices.map((row) => [row, col]);
+
+			update_state((s) => ({
+				ui_state: {
+					...s.ui_state,
+					active_cell_menu: null,
+					active_header_menu: null,
+					selected_header: col,
+					header_edit: false,
+					selected_cells: selectedCells,
+					selected: selectedCells[0],
+					editing: false
+				}
+			}));
+
+			context.dispatch?.("select", {
+				index: selectedCells,
+				col_value: context.get_column?.(col)
+			});
+
+			tick().then(() => {
+				context.parent_element?.focus();
 			});
 		},
 		toggle_cell_menu: (event, row, col) => {
