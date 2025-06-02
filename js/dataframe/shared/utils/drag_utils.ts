@@ -1,10 +1,11 @@
-import type { CellCoordinate } from "../types";
+import type { CellCoordinate} from "../types";
 import { get_range_selection } from "../selection_utils";
 
 
 export type DragState = {
 	is_dragging: boolean;
 	drag_start: CellCoordinate | null;
+	column_drag_start: number | null;
 	mouse_down_pos: { x: number; y: number } | null;
 };
 
@@ -14,13 +15,10 @@ export type DragHandlers = {
 	handle_mouse_up: (event: MouseEvent) => void;
 };
 
-
-//Os nossos handlers, aqui o nosso movimento pode começar tanto como um drag para a direita ou para a esquerda
 export type ColumnDragHandlers = {
-	handle_mouse_left: (event: MouseEvent, row: number, col: number) => void;
-	handle_mouse_right: (event: MouseEvent, row: number, col: number) => void;
-	handle_mouse_column_move: (event: MouseEvent) => void;
-	handle_mouse_stop: (event: MouseEvent) => void; //Meio na dúvida com este
+	handle_mouse_down_column: (event: MouseEvent, row: number, col: number) => void;
+	handle_mouse_move_column: (event: MouseEvent) => void;
+	handle_mouse_up_column: (event: MouseEvent) => void; 
 }
 
 
@@ -109,20 +107,13 @@ export function create_drag_handlers(
 export function create_column_drag_handlers(
 	state: DragState,
 	set_is_dragging: (value: boolean) => void,
-
-	//Aqui acho que deviamos fazer set_selected_columns, set_selected e handle_column_line_click
-	//Maybe tiramos o show_row_numbers?
-
-	//set_selected_column: (column: number) => void,
-	//set_selected: (cell: CellCoordinate | false) => void, O que fazer com este?
-	handle_column_click: (event: MouseEvent, col: number) => void
-	//show_row_numbers: boolean,
-	//parent_element?: HTMLElement
-
+	set_selected_cells: (cells: CellCoordinate[]) => void,
+	handle_column_click: (event: MouseEvent, col: number) => void,
+	show_row_numbers: boolean,
+	parent_element?: HTMLElement //Não sei o que isto é ainda
 ): ColumnDragHandlers {
 	const start_column_drag = (event: MouseEvent, col: number): void => {
-		//TO DO
-		/*
+
 		if (
 			event.target instanceof HTMLAnchorElement ||
 			(show_row_numbers && col === -1)
@@ -133,14 +124,12 @@ export function create_column_drag_handlers(
 		event.stopPropagation();
 
 		state.mouse_down_pos = { x: event.clientX, y: event.clientY };
-		state.drag_start = [row, col];
+		state.column_drag_start = col;
 
 		if (!event.shiftKey && !event.metaKey && !event.ctrlKey) {
-			set_selected_cells([[row, col]]);
-			set_selected([row, col]);
-			handle_cell_click(event, row, col);
+			handle_column_click(event, col);
 		}
-		*/
+		
 	};
 
 	const update_column_selection = (event: MouseEvent): void => {
@@ -177,12 +166,9 @@ export function create_column_drag_handlers(
 	};
 
 	return {
-		//Começamos o drag tanto para a esquerda como para a direita
-		handle_mouse_left: start_column_drag, 
-		handle_mouse_right: start_column_drag,
 
-
-		handle_mouse_column_move(event: MouseEvent): void {
+		handle_mouse_down_column: start_column_drag, 
+		handle_mouse_move_column(event: MouseEvent): void {
 
 			/*
 			if (!state.drag_start || !state.mouse_down_pos) return;
@@ -201,7 +187,6 @@ export function create_column_drag_handlers(
 			*/
 		},
 
-		handle_mouse_stop: end_column_drag
-		//Será que deviamos por um handle_mouse_stop?
+		handle_mouse_up_column: end_column_drag
 	};
 }
