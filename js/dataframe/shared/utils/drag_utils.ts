@@ -150,19 +150,17 @@ export function create_column_drag_handlers(
 	};
 
 	const end_column_drag = (event: MouseEvent): void => {
-		//TO DO
-		/*
-		if (!state.is_dragging && state.drag_start) {
-			handle_cell_click(event, state.drag_start[0], state.drag_start[1]);
+
+		if (!state.is_dragging && state.column_drag_start) {
+			handle_column_click(event, state.column_drag_start);
 		} else if (state.is_dragging && parent_element) {
 			parent_element.focus();
 		}
 
 		state.is_dragging = false;
 		set_is_dragging(false);
-		state.drag_start = null;
+		state.column_drag_start = null;
 		state.mouse_down_pos = null;
-		*/
 	};
 
 	return {
