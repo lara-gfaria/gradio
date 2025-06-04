@@ -107,7 +107,6 @@ export function create_drag_handlers(
 export function create_column_drag_handlers(
 	state: DragState,
 	set_is_dragging: (value: boolean) => void,
-	set_selected_cells: (cells: CellCoordinate[]) => void,
 	handle_column_click: (event: MouseEvent, col: number) => void,
 	show_row_numbers: boolean,
 	parent_element?: HTMLElement //Não sei o que isto é ainda
@@ -133,21 +132,25 @@ export function create_column_drag_handlers(
 	};
 
 	const update_column_selection = (event: MouseEvent): void => {
-		//TO DO, lembrar que estamos a selecionar colunas
-		/*
+
+		//O meu racional é que no update_selection anterior eles davam update das cell coordinates da nova range
+		//Neste caso acho que o que acontece aqui é que queremos arrastar outra coluna, portanto vemos em que célula 
+		//Estamos a fazer o arraste e depois retornamos essa nova coluna para depois ser arrastada.
+		//Mas será que isto faz sentido aqui?
+		//Porque no outro drag tu podes, no mesmo drag, ir selecionando cada vez mais ou menos células
+		//Mas no nosso drag tu para selecionares outra coluna tens que largar a coluna que estás a dar resizing
+		//E depois escolher outra coluna. Portanto acho que maybe não precisamos do update_column_selection, porque 
+		//Isso seria resolvido com uma nova instância de um column_drag
+		//Diz se achas que mantemos ou removemos isto por whatsapp quando puderes :)
+		
 		const cell = (event.target as HTMLElement).closest("td");
 		if (!cell) return;
 
-		const row = parseInt(cell.getAttribute("data-row") || "0");
 		const col = parseInt(cell.getAttribute("data-col") || "0");
 
-		if (isNaN(row) || isNaN(col)) return;
+		if (isNaN(col)) return;
 
-
-		const selection_range = get_range_selection(state.drag_start!, [row, col]);
-		set_selected_cells(selection_range);
-		set_selected([row, col]);
-		*/
+	
 	};
 
 	const end_column_drag = (event: MouseEvent): void => {
