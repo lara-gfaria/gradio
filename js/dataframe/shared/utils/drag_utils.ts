@@ -143,6 +143,7 @@ export function create_column_drag_handlers(
 
 		if (isNaN(row) || isNaN(col)) return;
 
+
 		const selection_range = get_range_selection(state.drag_start!, [row, col]);
 		set_selected_cells(selection_range);
 		set_selected([row, col]);
@@ -168,21 +169,31 @@ export function create_column_drag_handlers(
 		handle_mouse_down_column: start_column_drag, 
 		handle_mouse_move_column(event: MouseEvent): void {
 
-			/*
 			if (!state.drag_start || !state.mouse_down_pos) return;
 
 			const dx = Math.abs(event.clientX - state.mouse_down_pos.x);
 			const dy = Math.abs(event.clientY - state.mouse_down_pos.y);
 
-			if (!state.is_dragging && (dx > 3 || dy > 3)) {
+			//Aqui acho que faz sentido ds e dy serem superior a 0 em vez de 3, porque o caso de 3 era que 
+			//no drag anterior quando fazias um drag significativo aquilo selecionava a célula, mas aqui queremos que
+			//o drag acompanhe sempre o movimento.
+			if (!state.is_dragging && (dx > 0 || dy > 0)) {
 				state.is_dragging = true;
 				set_is_dragging(true);
+
+				//Será que é aqui que quando detetamos o movimento drag ajustamos o column width?
+				//Não sei bem ainda em que função é que vamos mesmo ajustar esse parâmetro
+				//Btw, column_widths é um parâmetro no dataframe context column_widths: string[];
+				//Provavelmente vamos ter que mexer nisso
 			}
 
+
 			if (state.is_dragging) {
-				update_selection(event);
+				update_column_selection(event);
 			}
-			*/
+
+
+			
 		},
 
 		handle_mouse_up_column: end_column_drag
